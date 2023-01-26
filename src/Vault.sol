@@ -24,13 +24,14 @@ contract Vault is ERC4626 {
         (
             string memory _name,    /// @param name of token
             string memory _symbol,  /// @param symbol of token
-            uint _decimals,         /// @param decimals of token
             ERC20 _asset,           /// @param asset underlying vault
             address _safe,          /// @param safe address
             uint amount,            /// @param amount of initial deposit
             address receiver        /// @param receiver for initial deposit shares
 
-        ) = abi.decode(data,(string,string,uint256,ERC20,address,uint256,address));
+        ) = abi.decode(data,(string,string,ERC20,address,uint256,address));
+
+        safe = ISafe(_safe);
 
         // initialize ERC4626
         _ERC4626_init(_asset, _name, _symbol);
@@ -46,11 +47,11 @@ contract Vault is ERC4626 {
     function deposit(uint256 assets, address receiver) public override returns (uint256 shares) {
         require(safe.isOwner(msg.sender), "NOT_IV");
 
-        ERC4626.deposit(assets, receiver);
+        shares = ERC4626.deposit(assets, receiver);
     }
 
     function totalAssets() public view override returns (uint256) {
-        asset.balanceOf(address(this));
+        return asset.balanceOf(address(this));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -81,7 +82,7 @@ contract Vault is ERC4626 {
         safe = ISafe(_safe);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal view override {
+    function _authorizeUpgrade(address) internal view override {
         require(msg.sender == address(safe), "NOT_ADMIN");
     }
 }
